@@ -22,7 +22,7 @@ exports['mercy-ui']:AddEyeEntry("meth_lab_open_close", {
           Label = 'Стартирай всички машини',
           EventType = 'Client',
           EventName = 'mercy-illegal/client/methLabs/check-lab-values',
-          EventParams = { Id = 1 ,  Animation = "idle_v4_pressoperator", AnimDict = "anim@amb@business@coc@coc_packing@", ProgressText = "Starting the lab"},
+          EventParams = { Id = 1 , Animation = "idle_v4_pressoperator", AnimDict = "anim@amb@business@coc@coc_packing@", ProgressText = "Starting the lab"},
           Enabled = function(Entity)
                   return true
           end,
@@ -53,7 +53,7 @@ exports['mercy-ui']:AddEyeEntry("meth_lab_1_stage1", {
           EventType = 'Client',
           EventName = 'mercy-illegal/client/methLabs/adjust-machine',
           EventParams = { 
-          labId = 1, MachineId = 1, key = "oxygen", value = 100 , Animation = "idle_c", AnimDict = "amb@world_human_clipboard@male@idle_a", ProgressText = "Adjusting Oxygen" 
+          labId = 1, key = "oxygen", MachineId = 1, value = 100 , Animation = "idle_c", AnimDict = "amb@world_human_clipboard@male@idle_a", ProgressText = "Adjusting Oxygen" 
       },
           Enabled = function(Entity)
               return true

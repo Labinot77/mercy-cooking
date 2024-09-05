@@ -1,5 +1,6 @@
 ServerConfig = ServerConfig or {}
 
+ServerConfig.DecreaseLabValues = 700
 ServerConfig.ResetTimes = {
   ["Labs"] = 24
 }

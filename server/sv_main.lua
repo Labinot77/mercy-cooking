@@ -55,14 +55,14 @@ end)
 EventsModule.RegisterServer('mercy-illegal/server/methLabs/start-dec-values', function(Source, labId)
     Citizen.CreateThread(function()
         while true do
-            Wait(750)
+            Wait(ServerConfig.DecreaseWait)
             if ServerConfig.LabValues[labId]['Active'] then
                 DecreaseLabValues(Source, labId)
             else
                 for key, _ in pairs(ServerConfig.LabValues[labId]['Values']) do
                     ResetLabValues(Source, labId)
                 end
-                break -- Exit the loop if the lab is not active
+                break 
             end
         end
     end)
@@ -103,27 +103,36 @@ function DecreaseLabValues(Source, labId)
     --     end)
     -- end
     
-CallbackModule.CreateCallback("mercy-illegal/server/methLabs/can-adjust-machine", function(labId, MachineId, PlayerId)
-    print("LabId:", labId, "MachineId:", MachineId, "PlayerId:", PlayerId)
+CallbackModule.CreateCallback("mercy-illegal/server/methLabs/can-adjust-machine", function(Source, Cb, Data, PlayerId)
+    local LabId = Data.labId
+    local MachineId = Data.MachineId
     
-    if MachineTable[labId] == nil then 
-        MachineTable[labId] = {}
+    if MachineTable[LabId] == nil then 
+        MachineTable[LabId] = {}
     end
 
-    if MachineTable[labId][PlayerId] == nil then 
-        MachineTable[labId][PlayerId] = ""
+    if MachineTable[LabId][PlayerId] == nil then 
+        MachineTable[LabId][PlayerId] = ""
     end
 
-    MachineTable[labId][PlayerId] = MachineTable[labId][PlayerId] .. tostring(MachineId)
-
-    local lastNumber = tonumber(string.sub(MachineTable[labId][PlayerId], -1))
-    local secondToLast = tonumber(string.sub(MachineTable[labId][PlayerId], -2, -2))
-
+    local lastNumber = tonumber(string.sub(MachineTable[LabId][PlayerId], -1)) or -1
+    local secondToLast = tonumber(string.sub(MachineTable[LabId][PlayerId], -2, -2)) or -1
+    
+    print(lastNumber, secondToLast, MachineId)
     if lastNumber ~= MachineId and secondToLast ~= MachineId then 
-        return true
+        Cb(true)
+        -- print("True")
     else 
-        return false
+        Cb(false)
+        -- print("False")
     end
+end)
+
+EventsModule.RegisterServer("mercy-illegal/server/methLabs/add-used-machine", function(Source, Data, PlayerId)
+    local MachineId = Data.MachineId
+    local LabId = Data.labId
+
+    MachineTable[LabId][PlayerId] = MachineTable[LabId][PlayerId] .. tostring(MachineId)
 end)
 
 
@@ -137,7 +146,6 @@ end)
         for key, _ in pairs(labValues) do
                 labValues[key] = 100  
                 TriggerClientEvent('mercy-illegal/client/methLabs/hide-icons', Source, key)
-                
             end
     end
     

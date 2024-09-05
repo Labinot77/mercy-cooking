@@ -62,24 +62,25 @@ RegisterNetEvent('mercy-illegal/client/methLabs/sync-lab-value', function(key, v
   TriggerEvent('mercy-ui/client/set-hud-values', key, 'Value', value)
 end)
 
--- RegisterNetEvent('mercy-illegal/client/methLabs/hide-icons', function(key)
---   TriggerEvent('mercy-ui/client/set-hud-values', key, 'Show', false)
--- end)
-
 
 RegisterNetEvent('mercy-illegal/client/methLabs/adjust-machine', function(Data)
     local PlayerId = GetPlayerPed(PlayerId())
-    print(Data.MachineId)
-    local result = CallbackModule.SendCallback("mercy-illegal/server/methLabs/can-adjust-machine", Data.labId, Data.MachineId, PlayerId)
+    local result = CallbackModule.SendCallback("mercy-illegal/server/methLabs/can-adjust-machine", Data, PlayerId)
+    
+
     
     if result then 
     exports['mercy-inventory']:SetBusyState(true)
     TriggerEvent('mercy-ui/client/play-sound', 'buton_press', 0.02)
     exports['mercy-ui']:ProgressBar(Data.ProgressText, 10000, {['AnimName'] = Data.Animation, ['AnimDict'] = Data.AnimDict}, false, true, true, function(DidComplete)
         if DidComplete then
+            EventsModule.TriggerServer("mercy-illegal/server/methLabs/add-used-machine", Data, PlayerId)
             exports['mercy-inventory']:SetBusyState(false)
             TriggerServerEvent('mercy-illegal/server/methLabs/add-lab-values', Data.labId, Data.key, Data.value)
               end
         end)
+    else
+        TriggerEvent('mercy-ui/client/notify', "detcord-error", "You can't use this", 'error')
+
     end
 end)
