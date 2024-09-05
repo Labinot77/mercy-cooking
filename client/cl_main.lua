@@ -28,8 +28,8 @@ RegisterNetEvent('mercy-illegal/client/methLabs/hide-all', function(Data)
 
   RegisterNetEvent('mercy-illegal/client/methLabs/check-lab-values', function(Data)
       local labId = Data.Id
-      local isActive = CallbackModule.SendCallback("mercy-illegal/server/methLabs/is-lab-active", labId)
-      local isCleaning = CallbackModule.SendCallback("mercy-illegal/server/methLabs/is-lab-cleaning", labId)
+      local isActive = CallbackModule.SendCallback("mercy-illegal/server/methLabs/lab-current-state", labId, "Active")
+      local isCleaning = CallbackModule.SendCallback("mercy-illegal/server/methLabs/lab-current-state", labId, "Cleaning")
 
 
     --   local Input = exports['mercy-ui']:BuildSliders()
@@ -53,7 +53,7 @@ RegisterNetEvent('mercy-illegal/client/methLabs/hide-all', function(Data)
       end
   end)
       else
-          TriggerEvent('mercy-ui/client/notify', "error", "Лабораторията не работи, опитай по-късно!", 'error')
+          TriggerEvent('mercy-ui/client/notify', "error", "The lab is not working, come back later!", 'error')
       end
   end)
 
@@ -65,22 +65,20 @@ end)
 
 RegisterNetEvent('mercy-illegal/client/methLabs/adjust-machine', function(Data)
     local PlayerId = GetPlayerPed(PlayerId())
-    local result = CallbackModule.SendCallback("mercy-illegal/server/methLabs/can-adjust-machine", Data, PlayerId)
+    local Result = CallbackModule.SendCallback("mercy-illegal/server/methLabs/can-adjust-machine", Data, PlayerId)
     
-
-    
-    if result then 
+    if Result then 
     exports['mercy-inventory']:SetBusyState(true)
     TriggerEvent('mercy-ui/client/play-sound', 'buton_press', 0.02)
     exports['mercy-ui']:ProgressBar(Data.ProgressText, 10000, {['AnimName'] = Data.Animation, ['AnimDict'] = Data.AnimDict}, false, true, true, function(DidComplete)
-        if DidComplete then
-            EventsModule.TriggerServer("mercy-illegal/server/methLabs/add-used-machine", Data, PlayerId)
-            exports['mercy-inventory']:SetBusyState(false)
-            TriggerServerEvent('mercy-illegal/server/methLabs/add-lab-values', Data.labId, Data.key, Data.value)
+         if DidComplete then
+                EventsModule.TriggerServer("mercy-illegal/server/methLabs/add-used-machine", Data, PlayerId)
+                TriggerServerEvent('mercy-illegal/server/methLabs/add-lab-values', Data.labId, Data.key, Data.value)
+
+                exports['mercy-inventory']:SetBusyState(false)
               end
         end)
     else
         TriggerEvent('mercy-ui/client/notify', "detcord-error", "You can't use this", 'error')
-
     end
 end)

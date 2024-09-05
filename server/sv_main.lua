@@ -34,14 +34,11 @@ EventsModule.RegisterServer('mercy-illegal/server/methLabs/update-lab-active-sta
     -- print(ServerConfig.LabValues[labId]["Active"])
 end)
 
-CallbackModule.CreateCallback('mercy-illegal/server/methLabs/is-lab-active', function(Source, Cb, labId)
-    Cb(ServerConfig.LabValues[labId]["Active"])
-end)
+CallbackModule.CreateCallback('mercy-illegal/server/methLabs/lab-current-state', function(Source, Cb, labId, Current)
+    Cb(ServerConfig.LabValues[labId][Current])
 
-CallbackModule.CreateCallback('mercy-illegal/server/methLabs/is-lab-cleaning', function(Source, Cb, labId)
-    Cb(ServerConfig.LabValues[labId]["Cleaning"])
+    -- ACTIVE, CLEANING??
 end)
-
 
 RegisterNetEvent('mercy-illegal/server/methLabs/add-lab-values', function(labId, key, value)
     if ServerConfig.LabValues[labId] and ServerConfig.LabValues[labId]['Values'] then
@@ -59,9 +56,10 @@ EventsModule.RegisterServer('mercy-illegal/server/methLabs/start-dec-values', fu
             if ServerConfig.LabValues[labId]['Active'] then
                 DecreaseLabValues(Source, labId)
             else
-                for key, _ in pairs(ServerConfig.LabValues[labId]['Values']) do
-                    ResetLabValues(Source, labId)
-                end
+            for key, _ in pairs(ServerConfig.LabValues[labId]['Values']) do
+                ResetLabValues(Source, labId)
+            end
+
                 break 
             end
         end
@@ -75,7 +73,8 @@ function DecreaseLabValues(Source, labId)
 
         if state then 
         for key, value in pairs(labValues) do
-        print("Key:", key, "Value:", value)
+
+        -- print("Key:", key, "Value:", value)
          labValues[key] = math.max(0, value - 1)
          TriggerClientEvent('mercy-illegal/client/methLabs/sync-lab-value', Source, key, labValues[key])
                 if labValues[key] == 0 then 
@@ -84,25 +83,9 @@ function DecreaseLabValues(Source, labId)
                 end
             end
 
-            -- HideIconsLoop(Source, labId)
         end
     end
 
-
-    -- function HideIconsLoop(Source, labId)
-    --     Citizen.CreateThread(function()
-    --         while true do
-    --             Wait(500)
-    --             if not ServerConfig.LabValues[labId]['Active'] then
-    --                 for key, _ in pairs(ServerConfig.LabValues[labId]['Values']) do
-    --                     ResetLabValues(Source, labId)
-    --                 end
-    --                 break
-    --             end
-    --         end
-    --     end)
-    -- end
-    
 CallbackModule.CreateCallback("mercy-illegal/server/methLabs/can-adjust-machine", function(Source, Cb, Data, PlayerId)
     local LabId = Data.labId
     local MachineId = Data.MachineId
@@ -171,5 +154,23 @@ end)
                 end)
             end
         end)
+
+
+        -- DEBUG
+
+    Citizen.CreateThread(function(), 
+            while true do
+                Wait(5000)
+                for labId, players in pairs(MachineTable) do
+                    print("Lab ID:", labId)
+                    
+                    for playerId, machineHistory in pairs(players) do
+                        print("Player ID:", playerId, "Used Machines:", machineHistory)
+                    end
+                end
+            end
+        end
+    end)
+
 
 end)
