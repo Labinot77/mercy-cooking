@@ -1,4 +1,6 @@
 
+
+
 Citizen.CreateThread(function()
 exports['mercy-ui']:AddEyeEntry("meth_lab_open_close", {
   Type = 'Zone',

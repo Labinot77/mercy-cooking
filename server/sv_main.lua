@@ -31,17 +31,15 @@ Citizen.CreateThread(function()
 
 EventsModule.RegisterServer('mercy-illegal/server/methLabs/update-lab-active-state', function(Source, labId, Type, bool)
     ServerConfig.LabValues[labId][Type] = bool
-    -- print(ServerConfig.LabValues[labId]["Active"])
 end)
 
 CallbackModule.CreateCallback('mercy-illegal/server/methLabs/lab-current-state', function(Source, Cb, labId, Current)
     Cb(ServerConfig.LabValues[labId][Current])
-
     -- ACTIVE, CLEANING??
 end)
 
 RegisterNetEvent('mercy-illegal/server/methLabs/add-lab-values', function(labId, key, value)
-    if ServerConfig.LabValues[labId] and ServerConfig.LabValues[labId]['Values'] then
+    if ServerConfig.LabValues[labId]['Values'] then
         local labValues = ServerConfig.LabValues[labId]['Values']
             labValues[key] = value
     else
@@ -52,39 +50,19 @@ end)
 EventsModule.RegisterServer('mercy-illegal/server/methLabs/start-dec-values', function(Source, labId)
     Citizen.CreateThread(function()
         while true do
-            Wait(ServerConfig.DecreaseWait)
+            Wait(750)
             if ServerConfig.LabValues[labId]['Active'] then
                 DecreaseLabValues(Source, labId)
             else
-            for key, _ in pairs(ServerConfig.LabValues[labId]['Values']) do
-                ResetLabValues(Source, labId)
-            end
-
-                break 
+                for key, _ in pairs(ServerConfig.LabValues[labId]['Values']) do
+                    ResetLabValues(Source, labId)
+                end
+                break -- Exit the loop if the lab is not active
             end
         end
     end)
 end)
 
-
-function DecreaseLabValues(Source, labId)
-    local labValues = ServerConfig.LabValues[labId]['Values']
-    local state = ServerConfig.LabValues[labId]['Active']
-
-        if state then 
-        for key, value in pairs(labValues) do
-
-        -- print("Key:", key, "Value:", value)
-         labValues[key] = math.max(0, value - 1)
-         TriggerClientEvent('mercy-illegal/client/methLabs/sync-lab-value', Source, key, labValues[key])
-                if labValues[key] == 0 then 
-                    ServerConfig.LabValues[labId]['Active'] = false
-                    ServerConfig.LabValues[labId]['Cleaning'] = true
-                end
-            end
-
-        end
-    end
 
 CallbackModule.CreateCallback("mercy-illegal/server/methLabs/can-adjust-machine", function(Source, Cb, Data, PlayerId)
     local LabId = Data.labId
@@ -101,13 +79,12 @@ CallbackModule.CreateCallback("mercy-illegal/server/methLabs/can-adjust-machine"
     local lastNumber = tonumber(string.sub(MachineTable[LabId][PlayerId], -1)) or -1
     local secondToLast = tonumber(string.sub(MachineTable[LabId][PlayerId], -2, -2)) or -1
     
-    print(lastNumber, secondToLast, MachineId)
     if lastNumber ~= MachineId and secondToLast ~= MachineId then 
         Cb(true)
-        -- print("True")
+        -- print(Cb)
     else 
         Cb(false)
-        -- print("False")
+        -- print(Cb)
     end
 end)
 
@@ -118,34 +95,18 @@ EventsModule.RegisterServer("mercy-illegal/server/methLabs/add-used-machine", fu
     MachineTable[LabId][PlayerId] = MachineTable[LabId][PlayerId] .. tostring(MachineId)
 end)
 
-
-    function ResetLabValues(Source, labId)
-        ServerConfig.LabValues[labId]['Active'] = false
-        ServerConfig.LabValues[labId]['Cleaning'] = true
-
-        -- print(ServerConfig.LabValues[labId]['Active'], ServerConfig.LabValues[labId]['Cleaning'] )
-        
-        local labValues = ServerConfig.LabValues[labId]['Values']
-        for key, _ in pairs(labValues) do
-                labValues[key] = 100  
-                TriggerClientEvent('mercy-illegal/client/methLabs/hide-icons', Source, key)
-            end
-    end
-    
-
-
-    EventsModule.RegisterServer("mercy-illegal/server/methLabs/give-reward", function(Source, labId)
+EventsModule.RegisterServer("mercy-illegal/server/methLabs/give-reward", function(Source, labId)
         if ServerConfig.LabValues[labId]["Active"] and not ServerConfig.LabValues[labId]["Cleaning"] then
             local Player = PlayerModule.GetPlayerBySource(Source)
             Player.Functions.AddItem("meth-bag", math.random(30,34), false, false, true)
             Player.Functions.Notify('success-cook', "Finished Cook", 5500)
             ResetLabValues(Source, labId)
         end
-    end)
+end)
     
 
     -- For now its triggerd from client side, make it from serve side
-    RegisterNetEvent("mercy-illegal/server/methLabs/reset-state", function(labId, type, bool)
+RegisterNetEvent("mercy-illegal/server/methLabs/reset-state", function(labId, type, bool)
             ServerConfig.LabValues[labId][type] = bool
     
             if type == 'Cleaning' then
@@ -153,24 +114,43 @@ end)
                     ServerConfig.LabValues[labId]['Cleaning'] = false
                 end)
             end
-        end)
+end)
+
+        -- Functions
+
+        function DecreaseLabValues(Source, labId)
+            local labValues = ServerConfig.LabValues[labId]['Values']
+            local state = ServerConfig.LabValues[labId]['Active']
+        
+                if state then 
+                for key, value in pairs(labValues) do
+                print("Key:", key, "Value:", value)
+                 labValues[key] = math.max(0, value - 1)
+                 TriggerClientEvent('mercy-illegal/client/methLabs/sync-lab-value', Source, key, labValues[key])
+                        if labValues[key] == 0 then 
+                            ServerConfig.LabValues[labId]['Active'] = false
+                            ServerConfig.LabValues[labId]['Cleaning'] = true
+                        end
+                    end
+        
+                end
+            end
+
+    function ResetLabValues(Source, labId)
+        ServerConfig.LabValues[labId]['Active'] = false
+        ServerConfig.LabValues[labId]['Cleaning'] = true
+
+        -- print(ServerConfig.LabValues[labId]['Active'], ServerConfig.LabValues[labId]['Cleaning'] )
+        local labValues = ServerConfig.LabValues[labId]['Values']
+        for key, _ in pairs(labValues) do
+            labValues[key] = 100  
+            TriggerClientEvent('mercy-illegal/client/methLabs/hide-icons', Source, key)
+        end
+
+        MachineTable[LabId] = nil
+    end
 
 
         -- DEBUG
-
-    Citizen.CreateThread(function(), 
-            while true do
-                Wait(5000)
-                for labId, players in pairs(MachineTable) do
-                    print("Lab ID:", labId)
-                    
-                    for playerId, machineHistory in pairs(players) do
-                        print("Player ID:", playerId, "Used Machines:", machineHistory)
-                    end
-                end
-            end
-        end
-    end)
-
 
 end)
