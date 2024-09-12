@@ -124,7 +124,8 @@ end)
         
                 if state then 
                 for key, value in pairs(labValues) do
-                print("Key:", key, "Value:", value)
+
+                -- print("Key:", key, "Value:", value)
                  labValues[key] = math.max(0, value - 1)
                  TriggerClientEvent('mercy-illegal/client/methLabs/sync-lab-value', Source, key, labValues[key])
                         if labValues[key] == 0 then 
@@ -132,7 +133,6 @@ end)
                             ServerConfig.LabValues[labId]['Cleaning'] = true
                         end
                     end
-        
                 end
             end
 
@@ -140,7 +140,6 @@ end)
         ServerConfig.LabValues[labId]['Active'] = false
         ServerConfig.LabValues[labId]['Cleaning'] = true
 
-        -- print(ServerConfig.LabValues[labId]['Active'], ServerConfig.LabValues[labId]['Cleaning'] )
         local labValues = ServerConfig.LabValues[labId]['Values']
         for key, _ in pairs(labValues) do
             labValues[key] = 100  
@@ -149,8 +148,5 @@ end)
 
         MachineTable[LabId] = nil
     end
-
-
-        -- DEBUG
 
 end)

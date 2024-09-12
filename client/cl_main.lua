@@ -17,7 +17,6 @@ AddEventHandler('Modules/client/ready', function()
     end)
 end)
 
-
 RegisterNetEvent('mercy-illegal/client/methLabs/hide-all', function(Data)
   local labValues = ServerConfig.LabValues[Data.Id]['Values']
   for key, value in pairs(labValues) do
@@ -25,22 +24,17 @@ RegisterNetEvent('mercy-illegal/client/methLabs/hide-all', function(Data)
       end
   end)
 
-  
 RegisterNetEvent('mercy-illegal/client/methLabs/sync-lab-value', function(key, value)
     TriggerEvent('mercy-ui/client/set-hud-values', key, 'Value', value)
   end)
   
-
-
-  RegisterNetEvent('mercy-illegal/client/methLabs/check-lab-values', function(Data)
+RegisterNetEvent('mercy-illegal/client/methLabs/check-lab-values', function(Data)
       local labId = Data.Id
       local isActive = CallbackModule.SendCallback("mercy-illegal/server/methLabs/lab-current-state", labId, "Active")
       local isCleaning = CallbackModule.SendCallback("mercy-illegal/server/methLabs/lab-current-state", labId, "Cleaning")
-        -- print(isActive, isCleaning)
 
-      local Input = exports['mercy-ui']:BuildSliders(3)
+      local Input = exports['mercy-ui']:BuildSliders({numSliders = 3})
 
-    
       if not isActive and not isCleaning then
           exports['mercy-inventory']:SetBusyState(true)
           exports['mercy-ui']:ProgressBar(Data.ProgressText, 13000, {['AnimName'] = Data.Animation, ['AnimDict'] = Data.AnimDict}, false, true, true, function(DidComplete)
